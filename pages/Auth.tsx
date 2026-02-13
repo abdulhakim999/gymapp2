@@ -1,16 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
 
 const Auth: React.FC = () => {
+  const navigate = useNavigate();
+  const { session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      navigate('/');
+    }
+  }, [session, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +46,11 @@ const Auth: React.FC = () => {
         setTimeout(() => {
              setIsSignUp(false);
              setMessage(null);
+             // If auto-login happens on sign up (depends on Supabase config), we might want to redirect:
+             // if (data.session) navigate('/'); 
+             // But usually email confirmation is required or it just signs them up. 
+             // Let's assume for now we just show the message as per original code, 
+             // or valid flow is they sign in next. 
         }, 2000);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -43,6 +58,7 @@ const Auth: React.FC = () => {
           password,
         });
         if (error) throw error;
+        navigate('/');
       }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
