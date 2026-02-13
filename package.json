@@ -2,7 +2,7 @@
   "name": "irontrack",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://abdulhakim999.github.io/gymapp2/",
+  "homepage": "https://gymapp2.vercel.app/",
   "type": "module",
   "scripts": {
     "dev": "vite",
