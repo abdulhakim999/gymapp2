@@ -3,7 +3,7 @@ import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import { User, Mail, Ruler, Weight, Calendar, Upload, LogOut } from 'lucide-react';
+import { User, Mail, Ruler, Weight, Calendar, Upload, LogOut, Download } from 'lucide-react';
 
 interface ProfileData {
   id: string;
@@ -31,6 +31,25 @@ const Profile: React.FC = () => {
     gender: null
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -147,13 +166,24 @@ const Profile: React.FC = () => {
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">My Profile</h1>
-        <button 
-            onClick={handleSignOut}
-            className="p-2 text-neutral-400 hover:text-red-400 transition-colors"
-            title="Sign Out"
-        >
-            <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+            {deferredPrompt && (
+                <button 
+                    onClick={handleInstallClick}
+                    className="p-2 text-lime-400 hover:text-lime-300 transition-colors"
+                    title="Install App"
+                >
+                    <Download size={20} />
+                </button>
+            )}
+            <button 
+                onClick={handleSignOut}
+                className="p-2 text-neutral-400 hover:text-red-400 transition-colors"
+                title="Sign Out"
+            >
+                <LogOut size={20} />
+            </button>
+        </div>
       </div>
 
       {message && (
